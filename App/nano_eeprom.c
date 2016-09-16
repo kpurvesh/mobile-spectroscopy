@@ -154,7 +154,9 @@ static uint32_t Nano_eeprom_GetConfigRecordSize(uScanConfig *pCfg)
 {
 	uint32_t record_size;
 
-	if(pCfg->scanCfg.scan_type != SLEW_TYPE)
+	if(pCfg->chemoScanCfg.scan_type == CHEMO_TYPE)
+		record_size = EEPROM_CHEMO_SCAN_CFG_STRUCT_SIZE;
+	else if(pCfg->scanCfg.scan_type != SLEW_TYPE)
 		record_size = EEPROM_SCAN_CFG_STRUCT_SIZE;
 	else
 	{
@@ -169,12 +171,18 @@ static uint32_t Nano_eeprom_GetConfigRecordSize(uScanConfig *pCfg)
 static int Nano_eeprom_GetConfigRecordFromAddr(uint32_t addr, uScanConfig *pCfg)
 {
 	uint32_t temp[EEPROM_SLEW_SCAN_CFG_STRUCT_SIZE/4];
+	uint32_t chemoTemp[EEPROM_CHEMO_SCAN_CFG_STRUCT_SIZE/4];
 
 	EEPROMRead((uint32_t *)pCfg, addr, EEPROM_SCAN_CFG_STRUCT_SIZE);
 	if(pCfg->scanCfg.scan_type == SLEW_TYPE)
 	{
 		EEPROMRead(temp, addr, EEPROM_SLEW_SCAN_CFG_STRUCT_SIZE);
 		memcpy( pCfg, temp, sizeof(uScanConfig));
+	}
+	if(pCfg->chemoScanCfg.scan_type == CHEMO_TYPE)
+	{
+		EEPROMRead(chemoTemp,addr,EEPROM_CHEMO_SCAN_CFG_STRUCT_SIZE);
+		memcpy(pCfg,chemoTemp,sizeof(chemoScanConfig));
 	}
 	if(pCfg->scanCfg.ScanConfig_serial_number[0] == 'F')
 		return FAIL;
@@ -236,18 +244,27 @@ int Nano_eeprom_SaveConfigRecord(uint8_t index, uScanConfig *pCfg)
 
 	ret = Nano_eeprom_GetDeviceSerialNumber((uint8_t*)ser_num);
 	Nano_eeprom_GetScanConfigIndexCounter(&ConfigIndexCounter);
-	pCfg->scanCfg.scanConfigIndex = ConfigIndexCounter;
+	if(pCfg->chemoScanCfg.scan_type == CHEMO_TYPE)
+		pCfg->chemoScanCfg.scanConfigIndex = ConfigIndexCounter;
+	else
+		pCfg->scanCfg.scanConfigIndex = ConfigIndexCounter;
 	ConfigIndexCounter++;
 	Nano_eeprom_SetScanConfigIndexCounter(&ConfigIndexCounter);
 	for(i=0; i < NANO_SER_NUM_LEN; i++)
 	{
 		if(!ret)
 		{
-	        pCfg->scanCfg.ScanConfig_serial_number[i] = ser_num[i];
+			if(pCfg->chemoScanCfg.scan_type == CHEMO_TYPE)
+				pCfg->chemoScanCfg.ScanConfig_serial_number[i] = ser_num[i];
+			else
+				pCfg->scanCfg.ScanConfig_serial_number[i] = ser_num[i];
 		}
 	    else
 	    {
-			pCfg->scanCfg.ScanConfig_serial_number[i] = 'F';
+	    	if(pCfg->chemoScanCfg.scan_type == CHEMO_TYPE)
+	    		pCfg->chemoScanCfg.ScanConfig_serial_number[i] = 'F';
+	    	else
+	    		pCfg->scanCfg.ScanConfig_serial_number[i] = 'F';
 	    }
 	}
 	num_records = Nano_eeprom_GetNumConfigRecords();

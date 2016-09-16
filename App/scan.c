@@ -126,6 +126,7 @@ static bool b_ReadPhotoSensor = true;
 static int ptnSrc=PATTERNS_FROM_RGB_PORT;
 static scanData curScanData;
 static slewScanData curSlewScanData;
+static chemoScanData curChemoScanData;
 static uScanConfig curScanConfig;
 static uint16_t scan_subimage_start_y = 0;
 static uint16_t scan_subimage_height = DMD_HEIGHT;
@@ -1046,6 +1047,15 @@ static void Scan_GenSlewScanData(void)
 	curSlewScanData.slewCfg.head.num_repeats = scan_num_repeats;
 }
 
+static void Scan_GenChemoScanData(void)
+{
+	size_t copy_size = sizeof(chemoScanData) - sizeof(int32_t)*ADC_DATA_LEN - sizeof(chemoScanConfig);
+	memcpy(&curChemoScanData, &curScanData, copy_size);
+	memcpy(&curChemoScanData.chemoCfg, &curScanConfig, sizeof(chemoScanConfig));
+	memcpy(&curChemoScanData.adc_data, &curScanData.adc_data, sizeof(int32_t)*ADC_DATA_LEN);
+	curChemoScanData.chemoCfg.num_repeats = scan_num_repeats;
+}
+
 uScanData *GetScanDataPtr(void)
 	/**
 	 * Returns the pointer to scanData struct where ADC values along with other header 
@@ -1071,7 +1081,11 @@ uScanData *GetScanDataPtr(void)
 	}
 	DEBUG_PRINT("\r\nDone hardcoding BLE scan data values\r\n");
 #endif
-	if(curScanConfig.scanCfg.scan_type != SLEW_TYPE)
+	if(curScanConfig.chemoScanCfg.scan_type == CHEMO_TYPE)
+	{
+		Scan_GenChemoScanData();
+		return ((uScanData *)&curChemoScanData);
+	} else if(curScanConfig.scanCfg.scan_type != SLEW_TYPE)
 	{
 		curScanData.scan_type = curScanConfig.scanCfg.scan_type;
 		curScanData.scanConfigIndex = curScanConfig.scanCfg.scanConfigIndex;
@@ -1206,7 +1220,20 @@ int Scan_SetConfig(uScanConfig *pCfg)
 {
 	int num_patterns;
 
-	if(pCfg->scanCfg.scan_type != SLEW_TYPE)
+	if(pCfg->chemoScanCfg.scan_type == CHEMO_TYPE)
+	{
+		/* Start Error Checking */
+		if(pCfg->chemoScanCfg.num_patterns > MAX_CHEMO_PATTERNS_PER_SCAN)
+			return FAIL;
+
+		if(pCfg->chemoScanCfg.num_repeats == 0)
+			return FAIL;
+		/* End Error Checking */
+
+		memcpy(&curScanConfig, pCfg, sizeof(uScanConfig));
+		scan_total_frames = curChemoScanData.chemoCfg.num_patterns/NUM_BP_PER_FRAME + 1;
+		Scan_SetNumRepeats(pCfg->chemoScanCfg.num_repeats);
+	} else if(pCfg->scanCfg.scan_type != SLEW_TYPE)
 	{
 		/* Start Error Checking */
 		if(pCfg->scanCfg.num_patterns > MAX_PATTERNS_PER_SCAN)

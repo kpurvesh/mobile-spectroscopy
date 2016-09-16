@@ -369,7 +369,9 @@ int Display_GenScanPatterns(uScanConfig *pCfg)
 	Nano_eeprom_GetcalibCoeffs(&calib_coeffs);
 	numPatterns = dlpspec_scan_genPatterns(pCfg, &calib_coeffs, &fb);
 #ifndef NO_PATTERN_BENDING
-	if(dlpspec_scan_bendPatterns(&fb, &calib_coeffs, numPatterns) != PASS)
+	if((pCfg->chemoScanCfg.scan_type == CHEMO_TYPE) && (dlpspec_scan_chemo_bendPatterns(&fb, &calib_coeffs, numPatterns) != PASS))
+		return -1;
+	else if(dlpspec_scan_bendPatterns(&fb, &calib_coeffs, numPatterns) != PASS)
 		return -1;
 #endif
 	return numPatterns;
