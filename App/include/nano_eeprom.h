@@ -80,7 +80,7 @@
 //size of each structure ceiled to the next multiple of 4.
 #define EEPROM_SCAN_CFG_STRUCT_SIZE (((sizeof(scanConfig)+3)/4)*4)
 #define EEPROM_SLEW_SCAN_CFG_STRUCT_SIZE (((sizeof(uScanConfig)+3)/4)*4)
-#define EEPROM_CHEMO_SCAN_CFG_STRUCT_SIZE (((sizeof(chemoScanConfig)+3)/4)*4)
+#define EEPROM_CHEMO_SCAN_CFG_STRUCT_SIZE (((sizeof(uScanConfig)+3)/4)*4)
 #define EEPROM_SCAN_CFG_SIZE (EEPROM_SLEW_SCAN_CFG_STRUCT_SIZE * EEPROM_MAX_SCAN_CFG_STORAGE)
 
 /* Function declarations */

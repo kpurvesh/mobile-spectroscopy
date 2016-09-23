@@ -1230,9 +1230,12 @@ int Scan_SetConfig(uScanConfig *pCfg)
 			return FAIL;
 		/* End Error Checking */
 
-		memcpy(&curScanConfig, pCfg, sizeof(uScanConfig));
-		scan_total_frames = curChemoScanData.chemoCfg.num_patterns/NUM_BP_PER_FRAME + 1;
+		memcpy(&curScanConfig, pCfg, sizeof(chemoScanConfig));
 		Scan_SetNumRepeats(pCfg->chemoScanCfg.num_repeats);
+		Scan_PopulateScanDataHeader();
+		Scan_GenChemoScanData();
+		scan_total_frames = curChemoScanData.chemoCfg.num_patterns/NUM_BP_PER_FRAME + 1;
+
 	} else if(pCfg->scanCfg.scan_type != SLEW_TYPE)
 	{
 		/* Start Error Checking */
@@ -1277,7 +1280,10 @@ int Scan_SetConfig(uScanConfig *pCfg)
 		return FAIL;
 
 	//Set selected scan cfg name as scan name in EEPROM
-	Nano_eeprom_SaveScanNameTag(curScanConfig.scanCfg.config_name);
+	if(curScanConfig.chemoScanCfg.scan_type == CHEMO_TYPE)
+		Nano_eeprom_SaveScanNameTag(curScanConfig.chemoScanCfg.config_name);
+	else
+		Nano_eeprom_SaveScanNameTag(curScanConfig.scanCfg.config_name);
 
 	Scan_SetNumPatternsToScan(num_patterns);
 	return num_patterns;

@@ -1839,7 +1839,6 @@ bool cmdSaveDeviceSerialNo_wr(void)
     char ser_num[8];
     uScanConfig goldenCfg;
     uScanConfig HadamardCfg;
-    uScanConfig ChemoCfg;
 
 	/*
 	 * Review comment - AL
@@ -1873,35 +1872,11 @@ bool cmdSaveDeviceSerialNo_wr(void)
 	HadamardCfg.scanCfg.wavelength_end_nm = 1700;
 	strcpy(HadamardCfg.scanCfg.config_name, "Hadamard 1");
 
-	//save a default Chemo scan cfg in EEPROM
-	ChemoCfg.chemoScanCfg.num_patterns = 5;
-	ChemoCfg.chemoScanCfg.scan_type = 128;
-	ChemoCfg.chemoScanCfg.num_repeats = 6;
-	ChemoCfg.chemoScanCfg.wavelengths[0] = 901;
-	ChemoCfg.chemoScanCfg.wavelengths[1] = 1000;
-	ChemoCfg.chemoScanCfg.wavelengths[2] = 1200;
-	ChemoCfg.chemoScanCfg.wavelengths[3] = 1400;
-	ChemoCfg.chemoScanCfg.wavelengths[4] = 1690;
-	ChemoCfg.chemoScanCfg.widths_px[0] = 8;
-	ChemoCfg.chemoScanCfg.widths_px[1] = 8;
-	ChemoCfg.chemoScanCfg.widths_px[2] = 8;
-	ChemoCfg.chemoScanCfg.widths_px[3] = 8;
-	ChemoCfg.chemoScanCfg.widths_px[4] = 8;
-	ChemoCfg.chemoScanCfg.heights_px[0] = 480;
-	ChemoCfg.chemoScanCfg.heights_px[1] = 480;
-	ChemoCfg.chemoScanCfg.heights_px[2] = 480;
-	ChemoCfg.chemoScanCfg.heights_px[3] = 480;
-	ChemoCfg.chemoScanCfg.heights_px[4] = 480;
-	strcpy(ChemoCfg.chemoScanCfg.config_name, "Chemo 1");
-
 	if ( PASS == Nano_eeprom_SaveConfigRecord(0, &goldenCfg))
 	{
 		if ( PASS == Nano_eeprom_SaveConfigRecord(1, &HadamardCfg))
 		{
-			if ( PASS == Nano_eeprom_SaveConfigRecord(2, &ChemoCfg))
-			{
-				return TRUE;
-			}
+			return TRUE;
 		}
 	}
 	return FALSE;
