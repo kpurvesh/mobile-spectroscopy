@@ -1053,7 +1053,7 @@ static void Scan_GenChemoScanData(void)
 	memcpy(&curChemoScanData, &curScanData, copy_size);
 	memcpy(&curChemoScanData.chemoCfg, &curScanConfig, sizeof(chemoScanConfig));
 	memcpy(&curChemoScanData.adc_data, &curScanData.adc_data, sizeof(int32_t)*ADC_DATA_LEN);
-	curChemoScanData.chemoCfg.num_repeats = scan_num_repeats;
+	curChemoScanData.chemoCfg.head.num_repeats = scan_num_repeats;
 }
 
 uScanData *GetScanDataPtr(void)
@@ -1081,7 +1081,7 @@ uScanData *GetScanDataPtr(void)
 	}
 	DEBUG_PRINT("\r\nDone hardcoding BLE scan data values\r\n");
 #endif
-	if(curScanConfig.chemoScanCfg.scan_type == CHEMO_TYPE)
+	if(curScanConfig.chemoScanCfg.head.scan_type == CHEMO_TYPE)
 	{
 		Scan_GenChemoScanData();
 		return ((uScanData *)&curChemoScanData);
@@ -1220,22 +1220,21 @@ int Scan_SetConfig(uScanConfig *pCfg)
 {
 	int num_patterns;
 
-	if(pCfg->chemoScanCfg.scan_type == CHEMO_TYPE)
+	if(pCfg->chemoScanCfg.head.scan_type == CHEMO_TYPE)
 	{
 		/* Start Error Checking */
-		if(pCfg->chemoScanCfg.num_patterns > MAX_CHEMO_PATTERNS_PER_SCAN)
+		if(pCfg->chemoScanCfg.chemoSection[0].num_patterns > MAX_CHEMO_PATTERNS_PER_SCAN)
 			return FAIL;
 
-		if(pCfg->chemoScanCfg.num_repeats == 0)
+		if(pCfg->chemoScanCfg.head.num_repeats == 0)
 			return FAIL;
 		/* End Error Checking */
 
 		memcpy(&curScanConfig, pCfg, sizeof(chemoScanConfig));
-		Scan_SetNumRepeats(pCfg->chemoScanCfg.num_repeats);
+		Scan_SetNumRepeats(pCfg->chemoScanCfg.head.num_repeats);
 		Scan_PopulateScanDataHeader();
 		Scan_GenChemoScanData();
-		scan_total_frames = curChemoScanData.chemoCfg.num_patterns/NUM_BP_PER_FRAME + 1;
-
+		scan_total_frames = 1;//curChemoScanData.chemoCfg.num_patterns/NUM_BP_PER_FRAME + 1;
 	} else if(pCfg->scanCfg.scan_type != SLEW_TYPE)
 	{
 		/* Start Error Checking */
@@ -1280,8 +1279,8 @@ int Scan_SetConfig(uScanConfig *pCfg)
 		return FAIL;
 
 	//Set selected scan cfg name as scan name in EEPROM
-	if(curScanConfig.chemoScanCfg.scan_type == CHEMO_TYPE)
-		Nano_eeprom_SaveScanNameTag(curScanConfig.chemoScanCfg.config_name);
+	if(curScanConfig.chemoScanCfg.head.scan_type == CHEMO_TYPE)
+		Nano_eeprom_SaveScanNameTag(curScanConfig.chemoScanCfg.head.config_name);
 	else
 		Nano_eeprom_SaveScanNameTag(curScanConfig.scanCfg.config_name);
 
