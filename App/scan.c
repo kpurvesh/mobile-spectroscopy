@@ -1223,7 +1223,7 @@ int Scan_SetConfig(uScanConfig *pCfg)
 	if(pCfg->chemoScanCfg.scan_type == CHEMO_TYPE)
 	{
 		/* Start Error Checking */
-		if(pCfg->chemoScanCfg.num_patterns > MAX_CHEMO_PATTERNS_PER_SCAN)
+		if(pCfg->chemoScanCfg.num_seqs > CHEMO_SCAN_MAX_SEQS)
 			return FAIL;
 
 		if(pCfg->chemoScanCfg.num_repeats == 0)
@@ -1234,7 +1234,7 @@ int Scan_SetConfig(uScanConfig *pCfg)
 		Scan_SetNumRepeats(pCfg->chemoScanCfg.num_repeats);
 		Scan_PopulateScanDataHeader();
 		Scan_GenChemoScanData();
-		scan_total_frames = curChemoScanData.chemoCfg.num_patterns/NUM_BP_PER_FRAME + 1;
+		scan_total_frames = (curChemoScanData.chemoCfg.num_seqs*curChemoScanData.chemoCfg.repeat_count)/NUM_BP_PER_FRAME + 1;
 
 	} else if(pCfg->scanCfg.scan_type != SLEW_TYPE)
 	{
